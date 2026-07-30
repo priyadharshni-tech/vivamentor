@@ -146,11 +146,51 @@ export interface ResumeAnalysis {
 }
 
 // InterviewAce Types
-export interface InterviewConfig {
-  track: 'HR' | 'Technical' | 'Behavioral' | 'Company Specific';
-  targetCompany?: string;
+export interface CandidateSetupConfig {
+  candidateName: string;
+  email: string;
+  college: string;
+  department: string;
+  year: string;
   targetRole: string;
   experienceLevel: 'Fresher' | 'Junior' | 'Senior';
+  preferredLanguage: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  track: 'HR' | 'Technical' | 'Coding' | 'System Design' | 'Full Stack' | 'Mixed';
+  targetCompany?: string;
+}
+
+export interface InterviewConfig extends CandidateSetupConfig {}
+
+export interface EmotionMetrics {
+  eyeContact: number; // 0-100%
+  faceDirection: 'Center' | 'Slight Left' | 'Slight Right' | 'Looking Down';
+  confidence: number;
+  stress: number;
+  anxiety: number;
+  engagement: number;
+  blinkRate: number; // blinks/min
+  posture: 'Optimal' | 'Leaning' | 'Fidgeting';
+}
+
+export interface VoiceMetrics {
+  pitchStability: number; // 0-100%
+  volumeLevel: number; // 0-100%
+  speakingSpeedWpm: number;
+  fillerWordCount: number;
+  pauseDurationSec: number;
+  fluencyScore: number;
+}
+
+export interface CodingRoundData {
+  language: string;
+  code: string;
+  output: string;
+  testCasesPassed: number;
+  totalTestCases: number;
+  timeComplexity: string;
+  spaceComplexity: string;
+  qualityAnalysis: string;
 }
 
 export interface STAREval {
@@ -166,12 +206,120 @@ export interface InterviewTurn {
   question: string;
   category: string;
   userAnswer: string;
-  confidenceScore: number;
+  
+  // ─── 10 Mandatory Evaluation Scores ───
+  technicalCorrectnessScore: number;
   communicationScore: number;
-  clarityScore: number;
+  problemSolvingScore: number;
+  grammarScore: number;
+  vocabularyScore: number;
+  fluencyScore: number;
+  confidenceScore: number;
+  completenessScore: number;
+  relevanceScore: number;
+  logicalThinkingScore: number;
+  
+  clarityScore: number; // calculated overall turn clarity
+  fillerWordsUsed: string[];
+  emotionMetrics?: EmotionMetrics;
+  voiceMetrics?: VoiceMetrics;
   starEvaluation: STAREval;
   modelAnswer: string;
   suggestions: string[];
+  evaluationMessage?: string;
+  evaluationConfidence?: 'High' | 'Medium' | 'Low';
+  evidence?: string[];
+  
+  // ─── 10 Mandatory Evidence Citations ───
+  scoreEvidence?: {
+    technical?: string;
+    communication?: string;
+    problemSolving?: string;
+    grammar?: string;
+    vocabulary?: string;
+    fluency?: string;
+    confidence?: string;
+    completeness?: string;
+    relevance?: string;
+    logicalThinking?: string;
+  };
+}
+
+// ─── Real-Time Evidence Metrics (100% derived from transcript, no AI needed) ───
+export interface FillerWordHit {
+  word: string;
+  count: number;
+}
+
+export interface LiveEvidenceMetrics {
+  /** Is there enough transcript to show scores? */
+  hasSufficientData: boolean;
+  /** How many words minimum before showing scores */
+  minWordsRequired: number;
+  wordCount: number;
+  /** Real WPM: wordCount / (elapsedMs / 60000) */
+  wordsPerMinute: number | null;
+  fillerWords: FillerWordHit[];
+  totalFillerCount: number;
+  technicalTermsFound: string[];
+  sentenceCount: number;
+  pauseEventCount: number;
+  /** Confidence-indicator phrases found in transcript */
+  confidenceIndicators: string[];
+  /** Hedging phrases that reduce confidence score */
+  hedgingPhrases: string[];
+  /** Detected repeating words (stutter proxy) */
+  repeatingWords: string[];
+  /** elapsed recording time in seconds */
+  elapsedSeconds: number;
+  transcriptSnippet: string; // first 120 chars for display
+}
+
+// ─── Live AI Evaluation (requires Gemini; null if insufficient evidence) ────
+export interface ScoredDimension {
+  /** null = "Analyzing..." — never show a number without evidence */
+  score: number | null;
+  /** Direct quote from candidate's transcript that justifies the score */
+  evidence: string | null;
+  reasoning: string | null;
+}
+
+export interface LiveAIEvaluation {
+  technical: ScoredDimension;
+  communication: ScoredDimension;
+  confidence: ScoredDimension;
+  grammar: ScoredDimension;
+  vocabulary: ScoredDimension;
+  fluency: ScoredDimension;
+  problemSolving: ScoredDimension;
+  completeness: ScoredDimension;
+  relevance: ScoredDimension;
+  logicalThinking: ScoredDimension;
+  /** Overall AI status message */
+  aiStatusMessage: string;
+  /** Was this generated from sufficient transcript evidence? */
+  basedOnSufficientEvidence: boolean;
+  /** word count at time of evaluation */
+  evaluatedOnWordCount: number;
+}
+
+export interface FinalInterviewReport {
+  overallScore: number;
+  technicalScore: number;
+  communicationScore: number;
+  confidenceScore: number;
+  problemSolvingScore: number;
+  behavioralScore: number;
+  voiceQualityScore: number;
+  emotionScore: number;
+  hiringRecommendation: 'Strong Hire' | 'Hire' | 'Borderline' | 'No Hire';
+  strengths: string[];
+  weaknesses: string[];
+  incorrectAnswers: { question: string; userAnswer: string; explanation: string }[];
+  suggestedImprovements: string[];
+  recommendedTopics: string[];
+  personalizedFeedback: string;
+  confidenceTimeline: { time: string; score: number }[];
 }
 
 export interface InterviewSession {
@@ -181,9 +329,11 @@ export interface InterviewSession {
   turns: InterviewTurn[];
   currentTurnIndex: number;
   totalQuestions: number;
-  status: 'setup' | 'active' | 'completed';
+  status: 'setup' | 'countdown' | 'active' | 'coding' | 'completed';
   startedAt: string;
   timePerQuestion: number; // seconds
+  finalReport?: FinalInterviewReport;
+  codingRound?: CodingRoundData;
 }
 
 // ResearchPilot Types
