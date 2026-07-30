@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lightbulb, Search, BookOpen, Code2, HelpCircle, BriefcaseBusiness, GitFork, X, CheckCircle2, XCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Lightbulb, Search, BookOpen, Code2, HelpCircle, Briefcase, GitFork, X, CheckCircle2, XCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { ConceptExplanation } from '../../types/agent';
 import { AIService } from '../../services/aiService';
 
@@ -222,7 +222,7 @@ export const ConceptGuruView: React.FC = () => {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-8 space-y-8">
             <div>
               <h4 className="font-bold text-slate-900 text-lg mb-4 flex items-center space-x-2">
-                <BriefcaseBusiness className="w-5 h-5 text-amber-600" />
+                <Briefcase className="w-5 h-5 text-amber-600" />
                 <span>Interview Questions</span>
               </h4>
               <ul className="space-y-3">
@@ -320,7 +320,7 @@ export const ConceptGuruView: React.FC = () => {
                { id: 'diagram', icon: GitFork, label: 'Diagram' },
                { id: 'code', icon: Code2, label: 'Code' },
                { id: 'quiz', icon: HelpCircle, label: 'Quiz' },
-               { id: 'interview', icon: BriefcaseBusiness, label: 'Interview' }
+               { id: 'interview', icon: Briefcase, label: 'Interview' }
              ].map((tab) => (
                <button
                  key={tab.id}

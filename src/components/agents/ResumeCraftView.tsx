@@ -216,7 +216,7 @@ export const ResumeCraftView: React.FC = () => {
               </div>
               <h2 className="text-3xl font-display font-extrabold tracking-tight">Role: {analysis.targetRole}</h2>
               <p className="text-sm text-purple-200 max-w-lg font-medium leading-relaxed">
-                Your resume scored an overall <span className="font-bold text-white">{analysis.atsScore}%</span> against ATS screening systems for this specific role. Incorporate the missing keywords below to aim for >90%.
+                Your resume scored an overall <span className="font-bold text-white">{analysis.atsScore}%</span> against ATS screening systems for this specific role. Incorporate the missing keywords below to aim for &gt;90%.
               </p>
             </div>
 
