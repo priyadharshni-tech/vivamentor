@@ -59,6 +59,7 @@ export const ResumeCraftView: React.FC = () => {
   const [targetRole, setTargetRole] = useState('Full Stack Software Engineer');
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,11 +100,12 @@ export const ResumeCraftView: React.FC = () => {
   const handleAnalyzeResume = async () => {
     if (!resumeText.trim() || isLoading) return;
     setIsLoading(true);
+    setError(null);
     try {
       const res = await AIService.analyzeResume(resumeText, targetRole);
       setAnalysis(res);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      setError(e.message ?? 'Something went wrong. Check your API key.');
     } finally {
       setIsLoading(false);
     }
@@ -196,6 +198,12 @@ export const ResumeCraftView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm font-medium">
+          ⚠️ {error}
+        </div>
+      )}
 
       {/* Analysis Output Dashboard */}
       {analysis && (

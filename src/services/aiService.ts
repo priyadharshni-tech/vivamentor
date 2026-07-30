@@ -9,23 +9,40 @@ const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 async function callGemini(prompt: string): Promise<string> {
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
+    throw new Error('Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your .env file.');
+  }
   const res = await fetch(GEMINI_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
     })
   });
-  if (!res.ok) throw new Error(`Gemini API error: ${res.status}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Gemini API error ${res.status}: ${err?.error?.message ?? res.statusText}`);
+  }
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
 function parseJSON<T>(text: string): T {
-  const match = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
-  const raw = match ? match[1].trim() : text.trim();
-  return JSON.parse(raw);
+  // Try fenced code block first, then bare JSON object/array
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) return JSON.parse(fenced[1].trim());
+  // Find the outermost { } or [ ]
+  const objStart = text.indexOf('{');
+  const arrStart = text.indexOf('[');
+  let start = -1;
+  if (objStart === -1) start = arrStart;
+  else if (arrStart === -1) start = objStart;
+  else start = Math.min(objStart, arrStart);
+  if (start === -1) throw new Error('No JSON found in response: ' + text.slice(0, 200));
+  const isArr = arrStart !== -1 && (objStart === -1 || arrStart < objStart);
+  const end = isArr ? text.lastIndexOf(']') : text.lastIndexOf('}');
+  return JSON.parse(text.slice(start, end + 1));
 }
 
 export const AIService = {

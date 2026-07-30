@@ -9,6 +9,7 @@ export const ConceptGuruView: React.FC = () => {
   const [difficulty, setDifficulty] = useState('Intermediate');
   const [explanation, setExplanation] = useState<ConceptExplanation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'explanation' | 'diagram' | 'code' | 'quiz' | 'interview'>('explanation');
   
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
@@ -20,6 +21,7 @@ export const ConceptGuruView: React.FC = () => {
     if (e) e.preventDefault();
     const query = topic.trim() || 'Garbage Collection';
     setIsLoading(true);
+    setError(null);
     try {
       const data = await AIService.explainConcept(query, difficulty);
       setExplanation(data);
@@ -27,8 +29,8 @@ export const ConceptGuruView: React.FC = () => {
       setShowQuizResults(false);
       setDismissedMisconceptions([]);
       setActiveTab('explanation');
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message ?? 'Something went wrong. Check your API key.');
     } finally {
       setIsLoading(false);
     }
@@ -310,6 +312,12 @@ export const ConceptGuruView: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm font-medium">
+          ⚠️ {error}
+        </div>
+      )}
 
       {/* Main Content Area */}
       {explanation && (

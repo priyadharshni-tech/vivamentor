@@ -11,17 +11,19 @@ export const ResearchPilotView: React.FC = () => {
   const [domain, setDomain] = useState('Artificial Intelligence & Software Engineering');
   const [analysis, setAnalysis] = useState<ResearchAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
   const [activeCitationTab, setActiveCitationTab] = useState<string>('IEEE');
 
   const handleResearch = async () => {
     if (!topic.trim() || isLoading) return;
     setIsLoading(true);
+    setError(null);
     try {
       const res = await AIService.analyzeResearchTopic(topic, domain);
       setAnalysis(res);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      setError(e.message ?? 'Something went wrong. Check your API key.');
     } finally {
       setIsLoading(false);
     }
@@ -117,6 +119,12 @@ export const ResearchPilotView: React.FC = () => {
       </motion.div>
 
       {/* Output Section */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm font-medium">
+          ⚠️ {error}
+        </div>
+      )}
+
       <AnimatePresence>
         {analysis && (
           <motion.div 

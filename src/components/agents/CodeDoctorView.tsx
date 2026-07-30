@@ -10,6 +10,7 @@ export const CodeDoctorView: React.FC = () => {
   const [code, setCode] = useState<string>(DEMO_CODE_DOCTOR_SAMPLES.java);
   const [analysis, setAnalysis] = useState<CodeAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'bugs' | 'diff' | 'linebyline'>('bugs');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
@@ -32,12 +33,13 @@ export const CodeDoctorView: React.FC = () => {
   const handleAnalyze = async () => {
     if (!code.trim() || isLoading) return;
     setIsLoading(true);
+    setError(null);
     try {
       const res = await AIService.analyzeCode(code, language);
       setAnalysis(res);
       setActiveTab('bugs');
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      setError(e.message ?? 'Something went wrong. Check your API key.');
     } finally {
       setIsLoading(false);
     }
@@ -111,6 +113,12 @@ export const CodeDoctorView: React.FC = () => {
            </button>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm font-medium">
+          ⚠️ {error}
+        </div>
+      )}
 
       {analysis && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
